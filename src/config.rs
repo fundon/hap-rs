@@ -68,7 +68,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub(crate) fn txt_records(&self) -> [String; 8] {
+    pub fn txt_records(&self) -> [String; 8] {
         [
             format!("md={}", self.name),
             format!("id={}", self.device_id.to_hex_string()),
@@ -119,7 +119,7 @@ fn get_current_ipv4() -> SocketAddr {
     };
 
     match socket.connect("8.8.8.8:80") {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(_) => return SocketAddr::from(([127, 0, 0, 1], 32000)),
     }
 
