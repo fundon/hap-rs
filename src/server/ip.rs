@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use futures::{
-    future::{self, BoxFuture, FutureExt},
+    future::{BoxFuture, FutureExt},
     lock::Mutex,
 };
 use log::info;
@@ -16,9 +16,8 @@ use crate::{
     pointer,
     server::Server,
     storage::{accessory_list::AccessoryList, Storage},
-    transport::{http::server::Server as HttpServer, mdns::MdnsResponder},
-    BonjourStatusFlag,
-    Result,
+    transport::http::server::Server as HttpServer,
+    BonjourStatusFlag, Result,
 };
 
 /// HAP Server via TCP/IP.
@@ -29,7 +28,6 @@ pub struct IpServer {
     accessory_list: pointer::AccessoryList,
     event_emitter: pointer::EventEmitter,
     http_server: HttpServer,
-    mdns_responder: MdnsResponder,
     persistence: ServerPersistence,
 }
 
@@ -111,7 +109,7 @@ impl IpServer {
                                 c.status_flag = BonjourStatusFlag::Zero;
                             }
                         }
-                    },
+                    }
                     Event::ControllerUnpaired { id } => {
                         info!("controller {} unpaired", id);
 
@@ -123,8 +121,8 @@ impl IpServer {
                                 c.status_flag = BonjourStatusFlag::NotPaired;
                             }
                         }
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
             .boxed()
@@ -139,7 +137,6 @@ impl IpServer {
             accessory_list.clone(),
             event_emitter.clone(),
         );
-        let mdns_responder = MdnsResponder::new(config.clone());
 
         let persistence = ServerPersistence {
             added_accessory_ids: Vec::new(),
@@ -151,7 +148,6 @@ impl IpServer {
             accessory_list,
             event_emitter,
             http_server,
-            mdns_responder,
             persistence,
         };
 
@@ -163,14 +159,17 @@ impl IpServer {
 impl Server for IpServer {
     fn run_handle(&self) -> BoxFuture<()> {
         let http_handle = self.http_server.run_handle();
-        let mdns_handle = self.mdns_responder.run_handle();
 
-        Box::pin(future::join(http_handle, mdns_handle).map(|_| ()).boxed())
+        Box::pin(http_handle.map(|_| ()).boxed())
     }
 
-    fn config_pointer(&self) -> pointer::Config { self.config.clone() }
+    fn config_pointer(&self) -> pointer::Config {
+        self.config.clone()
+    }
 
-    fn storage_pointer(&self) -> pointer::Storage { self.storage.clone() }
+    fn storage_pointer(&self) -> pointer::Storage {
+        self.storage.clone()
+    }
 
     async fn add_accessory<A: HapAccessory + 'static>(&self, accessory: A) -> Result<pointer::Accessory> {
         let accessory = self.accessory_list.lock().await.add_accessory(Box::new(accessory))?;
