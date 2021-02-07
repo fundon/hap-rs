@@ -5,7 +5,7 @@ use crate::{Error, Result};
 
 pub(crate) mod bonjour;
 pub(crate) mod http;
-pub(crate) mod mdns;
+// pub(crate) mod mdns;
 pub(crate) mod tcp;
 
 pub(crate) fn hkdf_extract_and_expand(salt: &[u8], ikm: &[u8], info: &[u8]) -> Result<[u8; 32]> {
